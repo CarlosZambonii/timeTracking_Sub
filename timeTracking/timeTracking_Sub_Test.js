@@ -190,13 +190,26 @@ function exportRankingCSV(ranking, filename = 'volunteer_ranking.csv') {
   console.log(`\n  Ranking exportado`); 
 }
 
-const inputData = `UserID\tName\tClock In\tClock Out\tNotes
-1\tCarlos Z.\t2025-06-23T08:00:00\t2025-06-23T12:00:00\tTranslated a blog post
-1\tCarlos Z.\t2025-06-25T09:00:00\t2025-06-25T13:30:00\tAttended a team call
-2\tMaria S.\t2025-06-27T14:00:00\t2025-06-27T18:00:00\t
-`;
+const fs = require('fs');
+const path = require('path');
+
+const filePath = process.argv[2];
+
+if (!filePath) {
+  console.error(' Please provide a TSV file path.\nExample:\n  node timeTracking_Sub_Test.js dados.tsv');
+  process.exit(1);
+}
+
+let inputData = '';
+try {
+  inputData = fs.readFileSync(path.resolve(filePath), 'utf8');
+} catch (err) {
+  console.error(` Error reading file "${filePath}": ${err.message}`);
+  process.exit(1);
+}
 
 const analysis = processVolunteerData(inputData);
+
 console.log('\n--- Volunteer Report ---');
 console.log(`Total volunteers: ${analysis.totalVolunteers}`);
 console.log(`Total sessions: ${analysis.totalSessions}`);
@@ -211,11 +224,10 @@ if (analysis.filteredSessions.length > 0) {
   console.log('\n--- Filtered Sessions ---');
   analysis.filteredSessions.forEach((s) =>
     console.log(
-      `${s.name} | ${s.timeIn} → ${s.timeOut} | ${s.duration.toFixed(
-        2
-      )}h | Reason: ${s.reason}`
+      `${s.name} | ${s.timeIn} → ${s.timeOut} | ${s.duration.toFixed(2)}h | Reason: ${s.reason}`
     )
   );
 }
+
 
 exportRankingCSV(analysis.ranking);
